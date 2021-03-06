@@ -97,7 +97,7 @@ for data in os.listdir(etf):
         # print(df_ge.shape)
         # print(df_ge.columns)
         # print(df_ge.head(5))
-        tqdm_notebook.pandas('Processing...')
+        # tqdm_notebook.pandas('Processing...')
     # df_ge = process_dataframe(df_ge)
         # print(df_ge.dtypes)
         train_cols = ["Open","High","Low","Close","Volume"]
