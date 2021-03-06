@@ -3,7 +3,7 @@ import os
 import sys
 import time
 import pandas as pd 
-from tqdm._tqdm_notebook import tqdm_notebook
+from tqdm.notebook import tqdm_notebook
 import pickle
 from keras.models import Sequential, load_model
 from keras.layers import Dense, Dropout
