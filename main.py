@@ -3,7 +3,7 @@ import os
 import sys
 import time
 import pandas as pd 
-from tqdm.notebook import tqdm_notebook
+from tqdm._tqdm_notebook import tqdm_notebook
 import pickle
 from keras.models import Sequential, load_model
 from keras.layers import Dense, Dropout
@@ -97,7 +97,7 @@ for data in os.listdir(etf):
         # print(df_ge.shape)
         # print(df_ge.columns)
         # print(df_ge.head(5))
-        # tqdm_notebook.pandas('Processing...')
+        tqdm_notebook.pandas('Processing...')
     # df_ge = process_dataframe(df_ge)
         # print(df_ge.dtypes)
         train_cols = ["Open","High","Low","Close","Volume"]
@@ -165,44 +165,44 @@ for data in os.listdir(stock):
     if data != ".DS_Store":
         print(data)
         ticker = data.replace(".us.txt","")
-        print(ticker)
+        # print(ticker)
         stime = time.time()
-        print(os.listdir(INPUT_PATH))
+        # print(os.listdir(INPUT_PATH))
         df_ge = pd.read_csv(os.path.join(etf, data), engine='python')
-        print(df_ge.shape)
-        print(df_ge.columns)
-        print(df_ge.head(5))
+        # print(df_ge.shape)
+        # print(df_ge.columns)
+        # print(df_ge.head(5))
         tqdm_notebook.pandas('Processing...')
     # df_ge = process_dataframe(df_ge)
         print(df_ge.dtypes)
         train_cols = ["Open","High","Low","Close","Volume"]
         df_train, df_test = train_test_split(df_ge, train_size=0.8, test_size=0.2, shuffle=False)
-        print("Train--Test size", len(df_train), len(df_test))
+        # print("Train--Test size", len(df_train), len(df_test))
 
         x = df_train.loc[:,train_cols].values
         min_max_scaler = MinMaxScaler()
         x_train = min_max_scaler.fit_transform(x)
         x_test = min_max_scaler.transform(df_test.loc[:,train_cols])
 
-        print("Deleting unused dataframes of total size(KB)",(sys.getsizeof(df_ge)+sys.getsizeof(df_train)+sys.getsizeof(df_test))//1024)
+        # print("Deleting unused dataframes of total size(KB)",(sys.getsizeof(df_ge)+sys.getsizeof(df_train)+sys.getsizeof(df_test))//1024)
 
         del df_ge
         del df_test
         del df_train
         del x
 
-        print("Are any NaNs present in train/test matrices?",np.isnan(x_train).any(), np.isnan(x_train).any())
+        # print("Are any NaNs present in train/test matrices?",np.isnan(x_train).any(), np.isnan(x_train).any())
         x_t, y_t = build_timeseries(x_train, 3)
         x_t = trim_dataset(x_t, BATCH_SIZE)
         y_t = trim_dataset(y_t, BATCH_SIZE)
-        print("Batch trimmed size",x_t.shape, y_t.shape)
+        # print("Batch trimmed size",x_t.shape, y_t.shape)
 
         model = None
-        try:
-            model = pickle.load(open("lstm_model", 'rb'))
-            print("Loaded saved model...")
-        except FileNotFoundError:
-            print("Model not found")
+        # try:
+        #     model = pickle.load(open("lstm_model", 'rb'))
+        #     print("Loaded saved model...")
+        # except FileNotFoundError:
+            # print("Model not found")
 
 
         x_temp, y_temp = build_timeseries(x_test, 3)
@@ -214,7 +214,7 @@ for data in os.listdir(stock):
         is_update_model = True
         if model is None or is_update_model:
             from keras import backend as K
-            print("Building model...")
+            # print("Building model...")
     #  print("checking if GPU available", K.tensorflow_backend._get_available_gpus())
             model = create_model()
     
