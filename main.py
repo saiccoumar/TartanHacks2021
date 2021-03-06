@@ -18,7 +18,7 @@ import logging
 
 params = {
     "batch_size": 20,  # 20<16<10, 25 was a bust
-    "epochs": 5,
+    "epochs": 100,
     "lr": 0.00010000,
     "time_steps": 60
 }
