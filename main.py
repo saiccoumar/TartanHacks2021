@@ -32,7 +32,6 @@ OUTPUT_PATH = path+"/outputs"
 TIME_STEPS = params["time_steps"]
 BATCH_SIZE = params["batch_size"]
 stime = time.time()
-
 def print_time(text, stime):
     seconds = (time.time()-stime)
     print(text, seconds//60,"minutes : ",np.round(seconds%60),"seconds")
@@ -86,81 +85,81 @@ def create_model():
     return lstm_model
 etf =  os.path.join(INPUT_PATH+"/archive/ETFs")
 stock = entries = os.path.join(INPUT_PATH+"/archive/Stocks")
-for data in os.listdir(etf):
-    if data != ".DS_Store":
-        print(data)
-        ticker = data.replace(".us.txt","")
-        # print(ticker)
-        stime = time.time()
-        # print(os.listdir(INPUT_PATH))
-        df_ge = pd.read_csv(os.path.join(etf, data), engine='python')
-        # print(df_ge.shape)
-        # print(df_ge.columns)
-        # print(df_ge.head(5))
-        # tqdm_notebook.pandas('Processing...')
-    # df_ge = process_dataframe(df_ge)
-        # print(df_ge.dtypes)
-        train_cols = ["Open","High","Low","Close","Volume"]
-        df_train, df_test = train_test_split(df_ge, train_size=0.8, test_size=0.2, shuffle=False)
-        # print("Train--Test size", len(df_train), len(df_test))
+# for data in os.listdir(etf):
+#     if data in ".DS_Store":
+#         print(data)
+#         ticker = data.replace(".us.txt","")
+#         # print(ticker)
+#         stime = time.time()
+#         # print(os.listdir(INPUT_PATH))
+#         df_ge = pd.read_csv(os.path.join(etf, data), engine='python')
+#         # print(df_ge.shape)
+#         # print(df_ge.columns)
+#         # print(df_ge.head(5))
+#         # tqdm_notebook.pandas('Processing...')
+#     # df_ge = process_dataframe(df_ge)
+#         # print(df_ge.dtypes)
+#         train_cols = ["Open","High","Low","Close","Volume"]
+#         df_train, df_test = train_test_split(df_ge, train_size=0.8, test_size=0.2, shuffle=False)
+#         # print("Train--Test size", len(df_train), len(df_test))
 
-        x = df_train.loc[:,train_cols].values
-        min_max_scaler = MinMaxScaler()
-        x_train = min_max_scaler.fit_transform(x)
-        x_test = min_max_scaler.transform(df_test.loc[:,train_cols])
+#         x = df_train.loc[:,train_cols].values
+#         min_max_scaler = MinMaxScaler()
+#         x_train = min_max_scaler.fit_transform(x)
+#         x_test = min_max_scaler.transform(df_test.loc[:,train_cols])
 
-        # print("Deleting unused dataframes of total size(KB)",(sys.getsizeof(df_ge)+sys.getsizeof(df_train)+sys.getsizeof(df_test))//1024)
+#         # print("Deleting unused dataframes of total size(KB)",(sys.getsizeof(df_ge)+sys.getsizeof(df_train)+sys.getsizeof(df_test))//1024)
 
-        del df_ge
-        del df_test
-        del df_train
-        del x
+#         del df_ge
+#         del df_test
+#         del df_train
+#         del x
 
-        # print("Are any NaNs present in train/test matrices?",np.isnan(x_train).any(), np.isnan(x_train).any())
-        x_t, y_t = build_timeseries(x_train, 3)
-        x_t = trim_dataset(x_t, BATCH_SIZE)
-        y_t = trim_dataset(y_t, BATCH_SIZE)
-        # print("Batch trimmed size",x_t.shape, y_t.shape)
+#         # print("Are any NaNs present in train/test matrices?",np.isnan(x_train).any(), np.isnan(x_train).any())
+#         x_t, y_t = build_timeseries(x_train, 3)
+#         x_t = trim_dataset(x_t, BATCH_SIZE)
+#         y_t = trim_dataset(y_t, BATCH_SIZE)
+#         # print("Batch trimmed size",x_t.shape, y_t.shape)
 
-        model = None
-        # try:
-        #     model = pickle.load(open("lstm_model", 'rb'))
-        #     # print("Loaded saved model...")
-        # except FileNotFoundError:
-        #     # print("Model not found")
+#         model = None
+#         # try:
+#         #     model = pickle.load(open("lstm_model", 'rb'))
+#         #     # print("Loaded saved model...")
+#         # except FileNotFoundError:
+#         #     # print("Model not found")
 
 
-        x_temp, y_temp = build_timeseries(x_test, 3)
-        x_val, x_test_t = np.split(trim_dataset(x_temp, BATCH_SIZE),2)
-        y_val, y_test_t = np.split(trim_dataset(y_temp, BATCH_SIZE),2)
+#         x_temp, y_temp = build_timeseries(x_test, 3)
+#         x_val, x_test_t = np.split(trim_dataset(x_temp, BATCH_SIZE),2)
+#         y_val, y_test_t = np.split(trim_dataset(y_temp, BATCH_SIZE),2)
 
-        # print("Test size", x_test_t.shape, y_test_t.shape, x_val.shape, y_val.shape)
+#         # print("Test size", x_test_t.shape, y_test_t.shape, x_val.shape, y_val.shape)
 
-        is_update_model = True
-        if model is None or is_update_model:
-            from keras import backend as K
-            # print("Building model...")
-    # print("checking if GPU available", K.tensorflow_backend._get_available_gpus())
-            model = create_model()
+#         is_update_model = True
+#         if model is None or is_update_model:
+#             from keras import backend as K
+#             # print("Building model...")
+#     # print("checking if GPU available", K.tensorflow_backend._get_available_gpus())
+#             model = create_model()
     
-            es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,
-                       patience=40, min_delta=0.0001)
+#             es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,
+#                        patience=40, min_delta=0.0001)
     
-            mcp = ModelCheckpoint(os.path.join(OUTPUT_PATH,
-                          ticker+".h5"), monitor='val_loss', verbose=1,
-                          save_best_only=True, save_weights_only=False, mode='min', period=1)
+#             mcp = ModelCheckpoint(os.path.join(OUTPUT_PATH,
+#                           ticker+".h5"), monitor='val_loss', verbose=1,
+#                           save_best_only=True, save_weights_only=False, mode='min', period=1)
 
-    # Not used here. But leaving it here as a reminder for future
-            r_lr_plat = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=30, 
-                                  verbose=0, mode='auto', min_delta=0.0001, cooldown=0, min_lr=0)
+#     # Not used here. But leaving it here as a reminder for future
+#             r_lr_plat = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=30, 
+#                                   verbose=0, mode='auto', min_delta=0.0001, cooldown=0, min_lr=0)
     
-    # csv_logger = CSVLogger(os.path.join(OUTPUT_PATH, 'training_log_' + time.ctime().replace(" ","_") + '.log'), append=True)
+#     # csv_logger = CSVLogger(os.path.join(OUTPUT_PATH, 'training_log_' + time.ctime().replace(" ","_") + '.log'), append=True)
     
-            history = model.fit(x_t, y_t, epochs=params["epochs"], verbose=2, batch_size=BATCH_SIZE,
-                        shuffle=False, validation_data=(trim_dataset(x_val, BATCH_SIZE),
-                        trim_dataset(y_val, BATCH_SIZE)), callbacks=[es, r_lr_plat, mcp])
+#             history = model.fit(x_t, y_t, epochs=params["epochs"], verbose=2, batch_size=BATCH_SIZE,
+#                         shuffle=False, validation_data=(trim_dataset(x_val, BATCH_SIZE),
+#                         trim_dataset(y_val, BATCH_SIZE)), callbacks=[es, r_lr_plat, mcp])
     
-            print("saving etf model...")
+#             print("saving etf model...")
 for data in os.listdir(stock):
     if data != ".DS_Store":
         print(data)
@@ -168,7 +167,7 @@ for data in os.listdir(stock):
         # print(ticker)
         stime = time.time()
         # print(os.listdir(INPUT_PATH))
-        df_ge = pd.read_csv(os.path.join(etf, data), engine='python')
+        df_ge = pd.read_csv(os.path.join(stock, data), engine='python')
         # print(df_ge.shape)
         # print(df_ge.columns)
         # print(df_ge.head(5))
@@ -221,7 +220,7 @@ for data in os.listdir(stock):
             es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,
                        patience=40, min_delta=0.0001)
     
-            mcp = ModelCheckpoint(os.path.join(OUTPUT_PATH,
+            mcp = ModelCheckpoint(os.path.join(OUTPUT_PATH+"Stock",
                           ticker+".h5"), monitor='val_loss', verbose=1,
                           save_best_only=True, save_weights_only=False, mode='min', period=1)
 
@@ -236,5 +235,6 @@ for data in os.listdir(stock):
                         trim_dataset(y_val, BATCH_SIZE)), callbacks=[es, r_lr_plat, mcp])
     
             print("saving stock model...")
+print("fin")
 #     pickle.dump(model, open("lstm_model", "wb"))
 
