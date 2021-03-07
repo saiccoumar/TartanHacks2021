@@ -85,6 +85,14 @@ def build_timeseries(mat, y_col_index):
 def home():
     return render_template('index.html')
 
+rangeSlider = 10
+"""@app.route('/ticker', methods=["GET","POST"])
+def sliderForm():
+    if request.method == "POST": 
+        global rangeSlider
+        rangeSlider = request.form.get("myRange")"""
+
+
 @app.route('/ticker', methods=["GET","POST"])
 def tickerForm(name="ge"):
     global path
@@ -95,11 +103,13 @@ def tickerForm(name="ge"):
     global stime
     global iter_changes
     global params
+    global rangeSlider
+    print("rangeSlider:" + str(rangeSlider))
     if request.method == "POST": 
-
+        range = request.form.get("rangeValue")
         ticker = request.form.get("tickerID") 
         # ticker = "fxl"
-
+        print(range)
         print("render")
         #############################
         stime = time.time()
@@ -183,11 +193,11 @@ def tickerForm(name="ge"):
         print("failed here 6")
         #plt.show()
         # img = plt
-        plt.savefig(os.path.join(path + "/static/plot"+'.png'))
+        plt.savefig(os.path.join(path + "/static/dio"+'.jpg'))
         print_time("program completed ", stime)
         ##############################
-        return render_template('front.html', name = ticker)
-    return render_template('front.html', name=name)
+        return render_template('front.html', name = ticker,image = "../static/dio.jpg")
+    return render_template('front.html', name=name,image = "../static/dio.jpg")
 
 if __name__ == '__main__':
 	app.run(port=8000, debug=True)
