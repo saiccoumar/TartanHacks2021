@@ -115,12 +115,15 @@ def tickerForm(name="ge"):
     global iter_changes
     global params
     if request.method == "POST": 
-        range = request.form.get("rangeValue")
+        rangeVar = request.form.get("rangeValue")
         ticker = request.form.get("tickerID") 
         # ticker = "fxl"
-        print("HOT WATER: "+range)
+        print("HOT WATER: "+rangeVar)
         print("render")
-        range = int(range)
+        rangeVar = int(rangeVar)
+        arr = {}
+        for i in range (0,10):
+            arr[i] = 0
         #############################
         stime = time.time()
         if os.path.isfile(os.path.join(INPUT_PATH, ticker+".us.txt")):
@@ -129,7 +132,7 @@ def tickerForm(name="ge"):
         else:
             print("failed to find file")
 
-            return render_template('front.html', name = "failed to find image", image =  "/static/safestocks.jpg")
+            return render_template('front.html', name = "failed to find image", image =  "/static/safestocks.jpg", infoKeys = list(arr.keys()),infoValues = list(arr.values()),maximum = "none", minimum = "none")
        
         print(df_ge.shape)
         print(df_ge.columns)
@@ -170,7 +173,7 @@ def tickerForm(name="ge"):
             saved_model = load_model(os.path.join(path+ "/outputs/", ticker+'.h5')) # , "lstm_best_7-3-19_12AM",
         else:
             print("failed to find path")
-            return render_template('front.html', name = "failed to load image", image =  "/static/safestocks.jpg")
+            return render_template('front.html', name = "failed to load image", image =  "/static/safestocks.jpg", infoKeys = list(arr.keys()),infoValues = list(arr.values()), maximum = "none", minimum = "none")
 
         print(saved_model)
 
@@ -180,23 +183,42 @@ def tickerForm(name="ge"):
         error = mean_squared_error(y_test_t, y_pred)
         print("Error is", error, y_pred.shape, y_test_t.shape)
         print("failed here 1")
-        print(y_pred[0:range])
-        print(y_test_t[0:range])
+        print(y_pred[0:rangeVar])
+        print(y_test_t[0:rangeVar])
         print("failed here 3")
         y_pred_org = (y_pred * min_max_scaler.data_range_[3]) + min_max_scaler.data_min_[3] -0.5   # min_max_scaler.inverse_transform(y_pred)
         y_test_t_org = (y_test_t * min_max_scaler.data_range_[3]) + min_max_scaler.data_min_[3] # min_max_scaler.inverse_transform      (y_test_t)
-        print(y_pred_org[0:range])
-        print(y_test_t_org[0:range])
+        print(y_pred_org[0:rangeVar])
+        print(y_test_t_org[0:rangeVar])
         print("failed here 2")
         # Visualize the prediction
         import matplotlib
         matplotlib.use('Agg')
+        arr = {}
         from matplotlib import pyplot as plt
-        
+        for i in range(0,rangeVar,int(rangeVar/10)):
+            # if i < 0:
+            #     arr[i] = 0
+            # else:
+            arr[i] = y_pred_org[i]
+            
+        # print(list(arr.keys())[0])
+        min = arr[(list(arr.keys())[0])]
+        max = arr[(list(arr.keys())[0])]
+        print(min)
+        for i in list(arr.values()):
+            if i > max:
+                max = i
+            if i < min:
+                min = i
+
+        print(max)
+        print(min)
+        print(arr)
         plt.figure()
         print("failed here 5")
-        plt.plot(y_pred_org[0:range])
-        plt.plot(y_test_t_org[0:range])
+        plt.plot(y_pred_org[0:rangeVar])
+        plt.plot(y_test_t_org[0:rangeVar])
         plt.title('Prediction vs Real Stock Price')
         plt.ylabel('Price($)')
         plt.xlabel('Days')
@@ -208,9 +230,11 @@ def tickerForm(name="ge"):
         print_time("program completed ", stime)
         ##############################
         
-        return render_template('front.html', name = ticker,image = "/static/plot.png")
-       
-    return render_template('front.html', name="None selected",image = "/static/safestocks.jpg")
+        return render_template('front.html', name = ticker,image = "/static/plot.png", infoKeys = list(arr.keys()),infoValues = list(arr.values()),maximum = max, minimum = min)
+    arr = {}
+    for i in range (0,10):
+        arr[i] = 0
+    return render_template('front.html', name="None selected",image = "/static/safestocks.jpg", infoKeys = list(arr.keys()),infoValues = list(arr.values()), maximum = "none", minimum = "none")
 
 if __name__ == '__main__':
 	app.run(port=8000, debug=True)
