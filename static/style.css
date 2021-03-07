@@ -20,3 +20,6 @@ body {
 .formUpper {
     text-transform: uppercase;
 }
+.msg {
+    font-size: 25px;
+}

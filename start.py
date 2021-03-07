@@ -120,7 +120,8 @@ def tickerForm(name="ge"):
         # ticker = "fxl"
         print("HOT WATER: "+rangeVar)
         print("render")
-        rangeVar = int(rangeVar)
+        rangeVar = float(rangeVar)
+        rangeVar = rangeVar/100
         arr = {}
         for i in range (0,10):
             arr[i] = 0
@@ -132,7 +133,7 @@ def tickerForm(name="ge"):
         else:
             print("failed to find file")
 
-            return render_template('front.html', name = "failed to find image", image =  "/static/safestocks.jpg", infoKeys = list(arr.keys()),infoValues = list(arr.values()),maximum = "none", minimum = "none")
+            return render_template('front.html', name = "failed to find image", image =  "/static/safestocks.jpg", infoKeys = list(arr.keys()),infoValues = list(arr.values()),maximum = "none", minimum = "none",mess = "No Ticker Found", volatility = 0)
        
         print(df_ge.shape)
         print(df_ge.columns)
@@ -173,7 +174,7 @@ def tickerForm(name="ge"):
             saved_model = load_model(os.path.join(path+ "/outputs/", ticker+'.h5')) # , "lstm_best_7-3-19_12AM",
         else:
             print("failed to find path")
-            return render_template('front.html', name = "failed to load image", image =  "/static/safestocks.jpg", infoKeys = list(arr.keys()),infoValues = list(arr.values()), maximum = "none", minimum = "none")
+            return render_template('front.html', name = "failed to load image", image =  "/static/safestocks.jpg", infoKeys = list(arr.keys()),infoValues = list(arr.values()), maximum = "none", minimum = "none",mess = "No Ticker Found",  volatility = 0)
 
         print(saved_model)
 
@@ -183,6 +184,9 @@ def tickerForm(name="ge"):
         error = mean_squared_error(y_test_t, y_pred)
         print("Error is", error, y_pred.shape, y_test_t.shape)
         print("failed here 1")
+        print(len(y_pred-1))
+        rangeVar = int(rangeVar * float((len(y_pred-1))))
+        print("MNM"+str(rangeVar))
         print(y_pred[0:rangeVar])
         print(y_test_t[0:rangeVar])
         print("failed here 3")
@@ -195,13 +199,34 @@ def tickerForm(name="ge"):
         import matplotlib
         matplotlib.use('Agg')
         arr = {}
+        volatilityIndex = 0
         from matplotlib import pyplot as plt
-        for i in range(0,rangeVar,int(rangeVar/10)):
-            # if i < 0:
-            #     arr[i] = 0
-            # else:
+        # for i in range(0,rangeVar):
+            # volatilityIndex = volatilityIndex + (y_pred_org[i])
+        # sum(y_pred_org)/len(y_pred_org)
+        maxROC = -999
+        recordedDate = 0 
+        message = ""
+        for i in range(0, rangeVar,int(rangeVar/10)):
             arr[i] = y_pred_org[i]
-            
+            # temp = (y_pred_org[i+1])-(y_pred_org[i]) 
+            # print(temp)
+            # volatilityIndex = volatilityIndex + (y_pred_org[i])
+            # if maxROC < ((temp)/y_pred_org[i+1]):
+            #     maxROC = ((temp)/y_pred_org[i+1])
+            #     print(maxROC)
+            #     recordedDate = i
+        print("all values:"+str(volatilityIndex))
+        volatilityIndex = sum(y_pred_org)/len(y_pred_org)
+        print("mean:"+str(volatilityIndex))
+        squaredDeviations = 0
+        for i in range(0, rangeVar,int(rangeVar/10)):
+            print((((volatilityIndex)-y_pred_org[i])))
+            squaredDeviations = squaredDeviations + (((volatilityIndex)-y_pred_org[i])*((volatilityIndex)-y_pred_org[i]))
+        print("sqrt"+str(squaredDeviations))
+        volatilityIndex = int(squaredDeviations/9)
+        print("volatility:"+str(volatilityIndex))
+        message = "We recommend that you buy between days " + str(recordedDate) + " and " + str(recordedDate+100)
         # print(list(arr.keys())[0])
         min = arr[(list(arr.keys())[0])]
         max = arr[(list(arr.keys())[0])]
@@ -217,6 +242,8 @@ def tickerForm(name="ge"):
         print(arr)
         plt.figure()
         print("failed here 5")
+        
+        
         plt.plot(y_pred_org[0:rangeVar])
         plt.plot(y_test_t_org[0:rangeVar])
         plt.title('Prediction vs Real Stock Price')
@@ -230,11 +257,11 @@ def tickerForm(name="ge"):
         print_time("program completed ", stime)
         ##############################
         
-        return render_template('front.html', name = ticker,image = "/static/plot.png", infoKeys = list(arr.keys()),infoValues = list(arr.values()),maximum = max, minimum = min)
+        return render_template('front.html', name = ticker,image = "/static/plot.png", infoKeys = list(arr.keys()),infoValues = list(arr.values()),maximum = max, minimum = min,mess = message, volatility = volatilityIndex)
     arr = {}
     for i in range (0,10):
         arr[i] = 0
-    return render_template('front.html', name="None selected",image = "/static/safestocks.jpg", infoKeys = list(arr.keys()),infoValues = list(arr.values()), maximum = "none", minimum = "none")
+    return render_template('front.html', name="None selected",image = "/static/safestocks.jpg", infoKeys = list(arr.keys()),infoValues = list(arr.values()), maximum = "none", minimum = "none",mess = "none", volatility = 0)
 
 if __name__ == '__main__':
 	app.run(port=8000, debug=True)

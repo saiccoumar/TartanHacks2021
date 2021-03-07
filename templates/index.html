@@ -27,20 +27,15 @@
       <h1 class="text-center pt-5"><span class="green">Safe</span>Stocks</h1>
       <hr>
 
-      {% if name %}
-      <h3>Ticker: {{ name }}</h3>
-      {% else %}
-      <h3>Ticker: <span class="muted">None Selected</span></h3>
-      {% endif %}
+      <h4>Enter a Company's Ticker</h4>
   
       <form action="{{ url_for("tickerForm")}}" method="post">
-        <label for="tickerID" class="form-label">Ticker ID:</label>
         <div class="mb-3 mt-4">
           <label for="slider" class="form-label">Select Range</label>
-          <input type="range" min="10" max="1500" name="rangeValue" value="1000" class="form-range" id="slider">
+          <input type="range" min="1" max="100" name="rangeValue" value="1000" class="form-range" id="slider">
         </div>
         <div class="input-group mb-3">          
-          <input type="text" class="form-control formUpper" placeholder="APL" id="tickerID" name="tickerID" >
+          <input type="text" class="form-control formUpper" placeholder="GE..." id="tickerID" name="tickerID" >
           <button class="btn btn-outline-secondary" type="submit">Submit</button>
         </div>
         <script src="" async defer></script>
