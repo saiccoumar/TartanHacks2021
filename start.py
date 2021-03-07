@@ -55,7 +55,7 @@ templateDir = path+"/templates"
 statDir = path +"/static"
 print(templateDir)
 print(statDir)
-app = Flask(__name__,template_folder=templateDir,static_folder=statDir,)
+app = Flask(__name__,template_folder=templateDir,static_folder=statDir)
 
 def build_timeseries(mat, y_col_index):
     """
@@ -81,6 +81,9 @@ def build_timeseries(mat, y_col_index):
     return x, y
 
 
+@app.route('/')
+def home():
+    return render_template('index.html')
 
 @app.route('/ticker', methods=["GET","POST"])
 def tickerForm(name="ge"):
