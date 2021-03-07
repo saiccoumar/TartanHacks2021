@@ -1,34 +1,52 @@
-<<!DOCTYPE html>
+<!DOCTYPE html>
   <!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
   <!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
   <!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
   <!--[if gt IE 8]>      <html class="no-js"> <!--<![endif]-->
+
   <html>
 
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>SafeStocks</title>
-    <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="">
+
+    <title>SafeStocks</title>
+    
+    <link rel="stylesheet" href="/static/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/style.css">
   </head>
 
   <body>
     <!--[if lt IE 7]>
-      <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="#">upgrade your browser</a> to improve your experience.</p>
+    <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="#">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->
-    {% if name %}
-    <h1>Ticker:{{ name }}!</h1>
-    {% else %}
-    <h1>Ticker: None Selected</h1>
-    {% endif %}
-    <form action="{{ url_for("tickerForm")}}" method="post">
-      <label for="">ticker ID:</label>
-      <input type="text" id="tickerID" name="tickerID" placeholder="apl">
-      <button type="submit">Submit</button>
-      <script src="" async defer></script>
+
+    <div class="container">
+
+      <h1 class="text-center pt-5"><span class="green">Safe</span>Stocks</h1>
+      <hr>
+
+      {% if name %}
+      <h3>Ticker: {{ name }}</h3>
+      {% else %}
+      <h3>Ticker: <span class="muted">None Selected</span></h3>
+      {% endif %}
+  
+      <form action="{{ url_for("tickerForm")}}" method="post">
+        <label for="tickerID" class="form-label">Ticker ID:</label>
+        <div class="mb-3 mt-4">
+          <label for="slider" class="form-label">Select Range</label>
+          <input type="range" min="10" max="1500" name="rangeValue" value="1000" class="form-range" id="slider">
+        </div>
+        <div class="input-group mb-3">          
+          <input type="text" class="form-control formUpper" placeholder="APL" id="tickerID" name="tickerID" >
+          <button class="btn btn-outline-secondary" type="submit">Submit</button>
+        </div>
+        <script src="" async defer></script>
       </form>
+    </div>
+
   </body>
 
   </html>

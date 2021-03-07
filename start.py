@@ -32,7 +32,7 @@ iter_changes = "dropout_layers_0.4_0.4"
 
 path = os.path.abspath('')
 print("Path: "+path)
-INPUT_PATH = path + "/archive/ETFs"
+INPUT_PATH = path + "/archive/data"
 OUTPUT_PATH = path
 TIME_STEPS = params["time_steps"]
 BATCH_SIZE = params["batch_size"]
@@ -56,6 +56,7 @@ statDir = path +"/static"
 print(templateDir)
 print(statDir)
 app = Flask(__name__,template_folder=templateDir,static_folder=statDir)
+# app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 def build_timeseries(mat, y_col_index):
     """
@@ -79,13 +80,23 @@ def build_timeseries(mat, y_col_index):
 #           print(i,"-->", x[i,-1,:], y[i])
     print("length of time-series i/o",x.shape,y.shape)
     return x, y
-
-
+# disable cacheing
+@app.after_request
+def add_header(r):
+    """
+    Add headers to both force latest IE rendering engine or Chrome Frame,
+    and also to cache the rendered page for 10 minutes.
+    """
+    r.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    r.headers["Pragma"] = "no-cache"
+    r.headers["Expires"] = "0"
+    r.headers['Cache-Control'] = 'public, max-age=0'
+    return r
 @app.route('/')
 def home():
     return render_template('index.html')
 
-rangeSlider = 10
+
 """@app.route('/ticker', methods=["GET","POST"])
 def sliderForm():
     if request.method == "POST": 
@@ -103,14 +114,13 @@ def tickerForm(name="ge"):
     global stime
     global iter_changes
     global params
-    global rangeSlider
-    print("rangeSlider:" + str(rangeSlider))
     if request.method == "POST": 
         range = request.form.get("rangeValue")
         ticker = request.form.get("tickerID") 
         # ticker = "fxl"
-        print(range)
+        print("HOT WATER: "+range)
         print("render")
+        range = int(range)
         #############################
         stime = time.time()
         if os.path.isfile(os.path.join(INPUT_PATH, ticker+".us.txt")):
@@ -118,7 +128,8 @@ def tickerForm(name="ge"):
             df_ge = pd.read_csv(os.path.join(INPUT_PATH, ticker+".us.txt"), engine='python')
         else:
             print("failed to find file")
-            return render_template('front.html', name = ticker)
+
+            return render_template('front.html', name = "failed to find image", image =  "/static/safestocks.jpg")
        
         print(df_ge.shape)
         print(df_ge.columns)
@@ -153,13 +164,13 @@ def tickerForm(name="ge"):
         x_val, x_test_t = np.split(trim_dataset(x_temp, BATCH_SIZE),2)
         y_val, y_test_t = np.split(trim_dataset(y_temp, BATCH_SIZE),2)
         print(path)
-        print(os.path.join(path+"/outputsETF", ticker+'.h5'))
-        if os.path.isfile(os.path.join(path+ "/outputsETF", ticker+'.h5')):
-            print("LOOK HERE:"+ os.path.join(path+ "/outputsETF", ticker+'.h5'))
-            saved_model = load_model(os.path.join(path+ "/outputsETF", ticker+'.h5')) # , "lstm_best_7-3-19_12AM",
+        print(os.path.join(path+"/outputs/", ticker+'.h5'))
+        if os.path.isfile(os.path.join(path+ "/outputs/", ticker+'.h5')):
+            print("LOOK HERE:"+ os.path.join(path+ "/outputs/", ticker+'.h5'))
+            saved_model = load_model(os.path.join(path+ "/outputs/", ticker+'.h5')) # , "lstm_best_7-3-19_12AM",
         else:
             print("failed to find path")
-            return render_template('front.html', name = ticker + "fail")
+            return render_template('front.html', name = "failed to load image", image =  "/static/safestocks.jpg")
 
         print(saved_model)
 
@@ -169,13 +180,13 @@ def tickerForm(name="ge"):
         error = mean_squared_error(y_test_t, y_pred)
         print("Error is", error, y_pred.shape, y_test_t.shape)
         print("failed here 1")
-        print(y_pred[0:15])
-        print(y_test_t[0:15])
+        print(y_pred[0:range])
+        print(y_test_t[0:range])
         print("failed here 3")
-        y_pred_org = (y_pred * min_max_scaler.data_range_[3]) + min_max_scaler.data_min_[3] # min_max_scaler.inverse_transform(y_pred)
+        y_pred_org = (y_pred * min_max_scaler.data_range_[3]) + min_max_scaler.data_min_[3] -0.5   # min_max_scaler.inverse_transform(y_pred)
         y_test_t_org = (y_test_t * min_max_scaler.data_range_[3]) + min_max_scaler.data_min_[3] # min_max_scaler.inverse_transform      (y_test_t)
-        print(y_pred_org[0:15])
-        print(y_test_t_org[0:15])
+        print(y_pred_org[0:range])
+        print(y_test_t_org[0:range])
         print("failed here 2")
         # Visualize the prediction
         import matplotlib
@@ -184,20 +195,22 @@ def tickerForm(name="ge"):
         
         plt.figure()
         print("failed here 5")
-        plt.plot(y_pred_org[0:150])
-        plt.plot(y_test_t_org[0:150])
+        plt.plot(y_pred_org[0:range])
+        plt.plot(y_test_t_org[0:range])
         plt.title('Prediction vs Real Stock Price')
-        plt.ylabel('Price')
+        plt.ylabel('Price($)')
         plt.xlabel('Days')
         plt.legend(['Prediction', 'Real'], loc='upper left')
         print("failed here 6")
         #plt.show()
         # img = plt
-        plt.savefig(os.path.join(path + "/static/dio"+'.jpg'))
+        plt.savefig(os.path.join("static/plot"+'.png'))
         print_time("program completed ", stime)
         ##############################
-        return render_template('front.html', name = ticker,image = "../static/dio.jpg")
-    return render_template('front.html', name=name,image = "../static/dio.jpg")
+        
+        return render_template('front.html', name = ticker,image = "/static/plot.png")
+       
+    return render_template('front.html', name="None selected",image = "/static/safestocks.jpg")
 
 if __name__ == '__main__':
 	app.run(port=8000, debug=True)

@@ -1,0 +1,22 @@
+@font-face {
+    font-family: Monda;
+    src: url("Monda-Regular.ttf");
+}
+@font-face {
+    font-family: Monda-Bold;
+    src: url("Monda-Bold.ttf");
+}
+
+body {
+    font-family: Monda;
+}
+.muted {
+    color: #7e7e7e;
+}
+.green {
+    color: #0dfc79;
+}
+
+.formUpper {
+    text-transform: uppercase;
+}
