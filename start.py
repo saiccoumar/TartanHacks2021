@@ -32,7 +32,7 @@ iter_changes = "dropout_layers_0.4_0.4"
 
 path = os.path.abspath('')
 print("Path: "+path)
-INPUT_PATH = path + "/datasets"
+INPUT_PATH = path + "/archive/ETFs"
 OUTPUT_PATH = path
 TIME_STEPS = params["time_steps"]
 BATCH_SIZE = params["batch_size"]
@@ -98,8 +98,9 @@ def tickerForm(name="ge"):
     if request.method == "POST": 
 
         ticker = request.form.get("tickerID") 
+        # ticker = "fxl"
 
-        
+        print("render")
         #############################
         stime = time.time()
         if os.path.isfile(os.path.join(INPUT_PATH, ticker+".us.txt")):
@@ -142,12 +143,13 @@ def tickerForm(name="ge"):
         x_val, x_test_t = np.split(trim_dataset(x_temp, BATCH_SIZE),2)
         y_val, y_test_t = np.split(trim_dataset(y_temp, BATCH_SIZE),2)
         print(path)
-        print(os.path.join(path+"/output", ticker+'.h5'))
-        if os.path.isfile(os.path.join(path+ "/output", ticker+'.h5')):
-            saved_model = load_model(os.path.join(path+ "/output", ticker+'.h5')) # , "lstm_best_7-3-19_12AM",
+        print(os.path.join(path+"/outputsETF", ticker+'.h5'))
+        if os.path.isfile(os.path.join(path+ "/outputsETF", ticker+'.h5')):
+            print("LOOK HERE:"+ os.path.join(path+ "/outputsETF", ticker+'.h5'))
+            saved_model = load_model(os.path.join(path+ "/outputsETF", ticker+'.h5')) # , "lstm_best_7-3-19_12AM",
         else:
             print("failed to find path")
-            return render_template('front.html', name = ticker)
+            return render_template('front.html', name = ticker + "fail")
 
         print(saved_model)
 
@@ -156,24 +158,32 @@ def tickerForm(name="ge"):
         y_test_t = trim_dataset(y_test_t, BATCH_SIZE)
         error = mean_squared_error(y_test_t, y_pred)
         print("Error is", error, y_pred.shape, y_test_t.shape)
+        print("failed here 1")
         print(y_pred[0:15])
         print(y_test_t[0:15])
+        print("failed here 3")
         y_pred_org = (y_pred * min_max_scaler.data_range_[3]) + min_max_scaler.data_min_[3] # min_max_scaler.inverse_transform(y_pred)
         y_test_t_org = (y_test_t * min_max_scaler.data_range_[3]) + min_max_scaler.data_min_[3] # min_max_scaler.inverse_transform      (y_test_t)
         print(y_pred_org[0:15])
         print(y_test_t_org[0:15])
-
+        print("failed here 2")
         # Visualize the prediction
+        import matplotlib
+        matplotlib.use('Agg')
         from matplotlib import pyplot as plt
+        
         plt.figure()
-        plt.plot(y_pred_org)
-        plt.plot(y_test_t_org)
+        print("failed here 5")
+        plt.plot(y_pred_org[0:150])
+        plt.plot(y_test_t_org[0:150])
         plt.title('Prediction vs Real Stock Price')
         plt.ylabel('Price')
         plt.xlabel('Days')
         plt.legend(['Prediction', 'Real'], loc='upper left')
+        print("failed here 6")
         #plt.show()
-        plt.savefig(os.path.join(path, 'pred_vs_real_BS'+str(BATCH_SIZE)+"_"+time.ctime()+'.png'))
+        # img = plt
+        plt.savefig(os.path.join(path + "/static/plot"+'.png'))
         print_time("program completed ", stime)
         ##############################
         return render_template('front.html', name = ticker)
